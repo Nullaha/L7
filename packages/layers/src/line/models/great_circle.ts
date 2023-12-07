@@ -10,6 +10,7 @@ import {
 } from '@antv/l7-core';
 import { rgb2arr } from '@antv/l7-utils';
 import BaseModel from '../../core/BaseModel';
+import { ShaderLocation } from '../../core/CommonStyleAttribute';
 import { ILineLayerStyleOptions } from '../../core/interface';
 import { LineArcTriangulation } from '../../core/triangulation';
 import line_arc_frag from '../shaders/line_arc_great_circle_frag.glsl';
@@ -19,9 +20,13 @@ const lineStyleObj: { [key: string]: number } = {
   dash: 1.0,
 };
 
+// 这是一个 AntV L7 库的自定义图层模型，用于渲染大圆弧线
 export default class GreatCircleModel extends BaseModel {
   protected texture: ITexture2D;
   public getUninforms(): IModelUniform {
+    // 返回模型的 Uniform 变量，这些变量在顶点和片段着色器中使用。
+    // 如线型、虚线设置、线贴图、渐变色等信息
+
     const {
       sourceColor,
       targetColor,
@@ -67,7 +72,7 @@ export default class GreatCircleModel extends BaseModel {
       u_sourceColor: sourceColorArr,
       u_targetColor: targetColorArr,
       ...this.getStyleAttribute()
-    };  
+    };
   }
   public getAnimateUniforms(): IModelUniform {
     const { animateOption } = this.layer.getLayerConfig() as ILayerConfig;
@@ -88,8 +93,9 @@ export default class GreatCircleModel extends BaseModel {
     this.texture?.destroy();
     this.iconService.off('imageUpdate', this.updateTexture);
   }
-
   public async buildModels(): Promise<IModel[]> {
+    // 用于创建图层模型
+    // 使用了自定义的顶点着色器和片段着色器，以及三角剖分方法 LineArcTriangulation。
     const { segmentNumber = 30 } =
     this.layer.getLayerConfig() as ILineLayerStyleOptions;
     const model = await this.layer.buildLayerModel({
@@ -104,7 +110,9 @@ export default class GreatCircleModel extends BaseModel {
     return [model];
   }
   protected registerBuiltinAttributes() {
+    // 注册一些内置的样式属性，如大小、实例信息、UV 坐标等。
     this.styleAttributeService.registerStyleAttribute({
+      // size 属性表示弧线的宽度，实际上是线的高度
       name: 'size',
       type: AttributeType.Attribute,
       descriptor: {
@@ -124,6 +132,7 @@ export default class GreatCircleModel extends BaseModel {
     });
 
     this.styleAttributeService.registerStyleAttribute({
+      // instance 属性表示弧线的起始点信息
       name: 'instance', // 弧线起始点信息
       type: AttributeType.Attribute,
       descriptor: {
@@ -145,6 +154,7 @@ export default class GreatCircleModel extends BaseModel {
     });
 
     this.styleAttributeService.registerStyleAttribute({
+      // uv 属性表示贴图的 UV 坐标
       name: 'uv',
       type: AttributeType.Attribute,
       descriptor: {
@@ -168,6 +178,7 @@ export default class GreatCircleModel extends BaseModel {
   }
 
   private updateTexture = () => {
+    // 更新纹理贴图，通常是将 Canvas 上的图像更新到纹理上
     const { createTexture2D } = this.rendererService;
     if (this.texture) {
       this.texture.update({

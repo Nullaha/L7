@@ -13,6 +13,7 @@ import React, { useEffect } from 'react';
 
 export default () => {
   useEffect(() => {
+    // 挂载后创建了一个 L7 场景和线图层，并设置了一些属性。
     const scene = new Scene({
       id: 'map',
       map: new GaodeMap({
@@ -64,7 +65,7 @@ export default () => {
     const source = new Source(geoData);
 
     // scene.on('zoom', e => console.log(e))
-
+    debugger
     const layer = new LineLayer({ blend: 'normal' })
       .source(source)
       .size(5)

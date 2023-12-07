@@ -13,7 +13,7 @@
     "dev-demos/*"
   ],
   "scripts": {
-    "dev": "export NODE_OPTIONS=--openssl-legacy-provider && dumi dev",
+    "dev": "set NODE_OPTIONS=--openssl-legacy-provider && dumi dev",
     "dev-build": "export NODE_OPTIONS=--openssl-legacy-provider && dumi build",
     "start": "lerna --scope @antv/l7-site exec yarn run site:develop",
     "site:build": "lerna --scope @antv/l7-site exec yarn run site:build",

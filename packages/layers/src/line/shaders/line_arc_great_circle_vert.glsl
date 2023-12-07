@@ -1,29 +1,40 @@
+#version 300 es
+//着色器顶点部分：主要负责将顶点坐标映射到屏幕空间，并处理一些线条的样式和贴图的相关逻辑
+
 #define LineTypeSolid 0.0
 #define LineTypeDash 1.0
 #define Animate 0.0
 #define LineTexture 1.0
 
-attribute vec4 a_Color;
-attribute vec3 a_Position;
-attribute vec4 a_Instance;
-attribute float a_Size;
-uniform mat4 u_ModelMatrix;
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec4 a_Color; //顶点属性：它是每个顶点都有的颜色信息
+layout(location = 2) in float a_Size;
+layout(location = 3) in vec4 a_Instance; //起始点信息
+layout(location = 4) in vec2 a_iconMapUV;; //起始点信息
 
-uniform float segmentNumber;
-uniform vec4 u_animate: [ 1., 2., 1.0, 0.2 ];
-varying vec4 v_color;
+layout(std140) uniform commonUniforms {
+  mat4 u_ModelMatrix;
+  float segmentNumber;
+  vec4 u_animate: [ 1., 2., 1.0, 0.2 ];
 
-varying float v_distance_ratio;
-uniform float u_line_type: 0.0;
-uniform vec4 u_dash_array: [10.0, 5., 0, 0];
-varying vec4 v_dash_array;
+  float u_line_type: 0.0;
+  vec4 u_dash_array: [10.0, 5., 0, 0];
 
-uniform float u_icon_step: 100;
-uniform float u_line_texture: 0.0;
+  float u_icon_step: 100;
+  float u_line_texture: 0.0;
+}
 
-attribute vec2 a_iconMapUV;
-varying vec2 v_iconMapUV;
-varying vec4 v_line_data;
+
+
+out vec4 v_color;
+// 怎么将顶点颜色v_color传给片段着色器的？
+// 在顶点着色器中，使用 varying 修饰的变量会在顶点着色器和片段着色器之间进行插值，从而将顶点的属性传递给片段着色器。
+// 在main()里将顶点颜色属性a_Color赋值给了v_color,然后v_color作为varying变量，在经过光栅化阶段，被插值传递给片段着色器。
+out float v_distance_ratio;
+out vec4 v_dash_array;
+
+out vec2 v_iconMapUV;
+out vec4 v_line_data;
 
 
 #pragma include "projection"
@@ -132,7 +143,7 @@ void main() {
     v_distance_ratio = segmentIndex / segmentNumber;
     vec2 s = source;
     vec2 t = target;
-    
+
     if(u_CoordinateSystem == COORDINATE_SYSTEM_P20_2) { // gaode2.x
       s = unProjCustomCoord(source);
       t = unProjCustomCoord(target);
@@ -156,7 +167,7 @@ void main() {
   // gl_Position = project_common_position_to_clipspace(vec4(curr.xy + offset, curr.z, 1.0));
 
 v_line_data.g = a_Position.x; // 该顶点在弧线上的分段排序
-  if(LineTexture == u_line_texture) { // 开启贴图模式  
+  if(LineTexture == u_line_texture) { // 开启贴图模式
     // float mapZoomScale = u_CoordinateSystem !== COORDINATE_SYSTEM_P20_2?10000000.0:1.0;
     float d_arcDistrance = length(source - target);
     if(u_CoordinateSystem == COORDINATE_SYSTEM_P20) { // amap
