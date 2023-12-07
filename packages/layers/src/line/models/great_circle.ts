@@ -10,7 +10,6 @@ import {
 } from '@antv/l7-core';
 import { rgb2arr } from '@antv/l7-utils';
 import BaseModel from '../../core/BaseModel';
-import { ShaderLocation } from '../../core/CommonStyleAttribute';
 import { ILineLayerStyleOptions } from '../../core/interface';
 import { LineArcTriangulation } from '../../core/triangulation';
 import line_arc_frag from '../shaders/line_arc_great_circle_frag.glsl';
