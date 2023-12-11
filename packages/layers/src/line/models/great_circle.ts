@@ -10,6 +10,7 @@ import {
 } from '@antv/l7-core';
 import { rgb2arr } from '@antv/l7-utils';
 import BaseModel from '../../core/BaseModel';
+import { ShaderLocation } from '../../core/CommonStyleAttribute';
 import { ILineLayerStyleOptions } from '../../core/interface';
 import { LineArcTriangulation } from '../../core/triangulation';
 import line_arc_frag from '../shaders/line_arc_great_circle_frag.glsl';
@@ -22,6 +23,17 @@ const lineStyleObj: { [key: string]: number } = {
 export default class GreatCircleModel extends BaseModel {
   protected texture: ITexture2D;
   public getUninforms(): IModelUniform {
+    const commoninfo = this.getCommonUniformsInfo();
+    const attributeInfo = this.getUniformsBufferInfo(this.getStyleAttribute());
+    this.updateStyleUnifoms();
+    
+    return {
+      ...commoninfo.uniformsOption,
+      ...attributeInfo.uniformsOption,
+    }
+  }
+  protected getCommonUniformsInfo(): { uniformsArray: number[]; uniformsLength: number; uniformsOption:{[key: string]: any}  } {
+
     const {
       sourceColor,
       targetColor,
@@ -49,32 +61,39 @@ export default class GreatCircleModel extends BaseModel {
       targetColorArr = rgb2arr(targetColor);
       useLinearColor = 1;
     }
-
-    return {
-      u_textureBlend: textureBlend === 'normal' ? 0.0 : 1.0,
-      segmentNumber,
-      u_line_type: lineStyleObj[lineType as string] || 0.0,
-      u_dash_array: dashArray,
-
-      // 纹理支持参数
-      u_texture: this.texture, // 贴图
-      u_line_texture: lineTexture ? 1.0 : 0.0, // 传入线的标识
-      u_icon_step: iconStep,
-      u_textSize: [1024, this.iconService.canvasHeight || 128],
-
-      // 渐变色支持参数
-      u_linearColor: useLinearColor,
+    const { animateOption } = this.layer.getLayerConfig() as ILayerConfig;
+    const commonOptions = {
+      u_animate:this.animateOption2Array(animateOption as IAnimateOption) || [ 1., 2., 1.0, 0.2 ],
+      u_dash_array: dashArray||[10.0, 5., 0, 0],
       u_sourceColor: sourceColorArr,
       u_targetColor: targetColorArr,
-      ...this.getStyleAttribute()
-    };  
+      u_textSize: [1024, this.iconService.canvasHeight || 128],
+      u_textureBlend: textureBlend === 'normal' ? 0.0 : 1.0,
+      u_blur: 0.9,
+      u_line_type: lineStyleObj[lineType as string] || 0.0,
+      u_line_texture: lineTexture ? 1.0 : 0.0, // 传入线的标识
+      segmentNumber,
+      u_icon_step: iconStep,
+      u_linearColor: useLinearColor,
+      u_time: this.layer.getLayerAnimateTime(),
+      
+      u_texture: this.texture, // 贴图
+
+      
+      // ...this.getStyleAttribute()
+    };
+
+    this.textures = [this.texture];
+    const commonBufferInfo = this.getUniformsBufferInfo(commonOptions)
+    return commonBufferInfo
   }
   public getAnimateUniforms(): IModelUniform {
-    const { animateOption } = this.layer.getLayerConfig() as ILayerConfig;
-    return {
-      u_animate: this.animateOption2Array(animateOption as IAnimateOption),
-      u_time: this.layer.getLayerAnimateTime(),
-    };
+    // const { animateOption } = this.layer.getLayerConfig() as ILayerConfig;
+    // return {
+    //   u_animate: this.animateOption2Array(animateOption as IAnimateOption),
+    //   u_time: this.layer.getLayerAnimateTime(),
+    // };
+    return {}
   }
 
   public async initModels(): Promise<IModel[]> {
@@ -90,6 +109,7 @@ export default class GreatCircleModel extends BaseModel {
   }
 
   public async buildModels(): Promise<IModel[]> {
+    this.initUniformsBuffer();
     const { segmentNumber = 30 } =
     this.layer.getLayerConfig() as ILineLayerStyleOptions;
     const model = await this.layer.buildLayerModel({
@@ -109,6 +129,7 @@ export default class GreatCircleModel extends BaseModel {
       type: AttributeType.Attribute,
       descriptor: {
         name: 'a_Size',
+        shaderLocation: ShaderLocation.SIZE,
         buffer: {
           // give the WebGL driver a hint that this buffer may change
           usage: gl.DYNAMIC_DRAW,
@@ -128,6 +149,7 @@ export default class GreatCircleModel extends BaseModel {
       type: AttributeType.Attribute,
       descriptor: {
         name: 'a_Instance',
+        shaderLocation: 10,
         buffer: {
           usage: gl.STATIC_DRAW,
           data: [],
@@ -149,6 +171,7 @@ export default class GreatCircleModel extends BaseModel {
       type: AttributeType.Attribute,
       descriptor: {
         name: 'a_iconMapUV',
+        shaderLocation: ShaderLocation.UV,
         buffer: {
           // give the WebGL driver a hint that this buffer may change
           usage: gl.DYNAMIC_DRAW,

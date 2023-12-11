@@ -3,27 +3,40 @@
 #define Animate 0.0
 #define LineTexture 1.0
 
-attribute vec4 a_Color;
-attribute vec3 a_Position;
-attribute vec4 a_Instance;
-attribute float a_Size;
-uniform mat4 u_ModelMatrix;
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec4 a_Color;
+layout(location = 9) in float a_Size;
+layout(location = 10) in vec4 a_Instance;
+layout(location = 14) in vec2 a_iconMapUV;
 
-uniform float segmentNumber;
-uniform vec4 u_animate: [ 1., 2., 1.0, 0.2 ];
-varying vec4 v_color;
+  // mat4 u_ModelMatrix;
+  // mat4 u_ModelMatrixAttribute;
+layout(std140) uniform commonUniforms {
+  vec4 u_animate: [ 1., 2., 1.0, 0.2 ];
+  vec4 u_dash_array: [10.0, 5., 0, 0];
+  vec4 u_sourceColor;
+  vec4 u_targetColor;
+  vec2 u_textSize;
+  float u_textureBlend;
+  float u_blur : 0.9;
+  float u_line_type;
+  float u_line_texture;
+  float segmentNumber;
+  float u_icon_step: 100;
+  float u_linearColor: 0;
+  float u_time;
 
-varying float v_distance_ratio;
-uniform float u_line_type: 0.0;
-uniform vec4 u_dash_array: [10.0, 5., 0, 0];
-varying vec4 v_dash_array;
+};
+uniform sampler2D u_texture;
 
-uniform float u_icon_step: 100;
-uniform float u_line_texture: 0.0;
 
-attribute vec2 a_iconMapUV;
-varying vec2 v_iconMapUV;
-varying vec4 v_line_data;
+
+out vec4 v_color;
+out float v_distance_ratio;
+out vec4 v_dash_array;
+
+out vec2 v_iconMapUV;
+out vec4 v_line_data;
 
 
 #pragma include "projection"

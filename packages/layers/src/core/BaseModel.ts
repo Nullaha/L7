@@ -71,6 +71,7 @@ const shaderLocationMap: Record<string, ShaderLocation> = {
   offsets: ShaderLocation.OFFSETS,
   rotation: ShaderLocation.ROTATION,
   extrusionBase: ShaderLocation.EXTRUSION_BASE,
+  thetaOffset: ShaderLocation.THETA_OFFSET,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
